@@ -4,8 +4,10 @@ library(raster)
 library(picante)
 library(multicore)
 
+
+#TODO I/O interface 
+
 #Set Working directory
-setwd("~/Dropbox/IAvH/betaphylodiversity/")
 
 #Load community file and clean NA values
 community<-read.table("communities.txt",h=T)
@@ -108,32 +110,32 @@ partition_jobs <- function(pix_ras=pix_ras, mesh1=mesh1,  mesh2=mesh2) {
 
 
 ####Neighbours_complete######
-neighbours_complete <- function(x) {
-  n <- length(which( (x >= 0) == T) )
-  n<- n + length( which(is.na(x) == T ) )
-  if (n == length(x) ) { return(T) }
-  else { return(F) }
-}
+#neighbours_complete <- function(x) {
+#  n <- length(which( (x >= 0) == T) )
+#  n<- n + length( which(is.na(x) == T ) )
+#  if (n == length(x) ) { return(T) }
+#  else { return(F) }
+#}
 
 
 ###Pixel2Keep#####
-pixel2keep <- function(x,y,k,m) {
-  if ( k == 1 || m == 1 ) {
-    if (k == 1 && m ==1 && x == y) {
-      return (x)
-    }
-    else if (k == 1 && m != 1 ) {
-      return (x)
-    }
-    else if (k != 1 && m == 1 ) {
-      return (y)
-    }
-  }
-  else {
-    warning( "both windows overlay at a corner: try resizing one of the meshes" )
-  }
-}
-
+#pixel2keep <- function(x,y,k,m) {
+#  if ( k == 1 || m == 1 ) {
+#    if (k == 1 && m ==1 && x == y) {
+#      return (x)
+#    }
+#    else if (k == 1 && m != 1 ) {
+#      return (x)
+#    }
+#    else if (k != 1 && m == 1 ) {
+#      return (y)
+#    }
+#  }
+#  else {
+#    warning( "both windows overlay at a corner: try resizing one of the meshes" )
+#  }
+#}
+if (FALSE) {
 #####It overlays? #####
 it_overlays <- function( k , m) {
   suppressWarnings(try(
@@ -143,11 +145,9 @@ it_overlays <- function( k , m) {
     , silent=T))
   return(F)
 }
-
-merge_partitions <- function (k , m) {
-  
 }
 
+if (FALSE) {
 check_borders <- function(x,y) {
   if (x == y) {
     return(x)
@@ -159,12 +159,10 @@ check_borders <- function(x,y) {
     return(x)
     }
 }
-
-#### La funcion focal recorre el raster y para cada pixel genera una ventana alrededor de las dimensiones especificadas en w.  En este caso una ventana de 3*3 pixeles y para la ventana seleccionada aplica la funcion beta
+}
 
 #copute betaphylodiversity by windows using neighbours geometry define in w
 #ras_beta_phylosor<-raster::focal(pix_ras,w=matrix(1,nrow=3,ncol=3),fun=beta1)
-#piplot(ras_beta_phylosor)
 
 #get total number of cores on machine
 total_cores <- multicore:::detectCores()
@@ -177,12 +175,8 @@ mesh2 <- c(cores2use/3, 3)
 pix_ras_clusters <- partition_jobs(pix_ras, mesh1, mesh2)
 
 ras_beta_phylosor_clusters1 <- mclapply(pix_ras_clusters$mesh1_cl, raster::focal, w=matrix(1,nrow=3,ncol=3), fun=beta1)
-#ras_neigh_clusters1 <- mclapply(pix_ras_clusters$mesh1_cl, raster::focal, w=matrix(1,nrow=3,ncol=3), fun=neighbours_complete)
 ras_beta_phylosor_clusters2 <- mclapply(pix_ras_clusters$mesh2_cl, raster::focal, w=matrix(1,nrow=3,ncol=3), fun=beta1)
-#ras_neigh_clusters2 <- mclapply(pix_ras_clusters$mesh2_cl, raster::focal, w=matrix(1,nrow=3,ncol=3), fun=neighbours_complete)
 
-#beta_clu1 <- list(beta=ras_beta_phylosor_clusters1, neigh=ras_neigh_clusters1)
-#beta_clu2 <- list(beta=ras_beta_phylosor_clusters2, neigh=ras_neigh_clusters2)
 all_rasters <- c(ras_beta_phylosor_clusters1, ras_beta_phylosor_clusters2)
 rasters.mosaicargs <- all_rasters
 rasters.mosaicargs$fun <- mean
@@ -200,5 +194,4 @@ mos <- do.call(mosaic, rasters.mosaicargs)
 #  }
 #  c_j = c_j + j
 #}
-
 
