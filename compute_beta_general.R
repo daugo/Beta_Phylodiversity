@@ -3,22 +3,22 @@ rm(list=ls())
 library(raster)
 library(picante)
 library(multicore)
-
+library(rgdal)
 
 #TODO I/O interface 
 
 #Set Working directory
-
+setwd("~/Beta_Phylodiversity/")
 #Load community file and clean NA values
 community<-read.table("communities.txt",h=T)
 community<-na.omit(community)
-
+community<- community[,2:dim(community)[2]]
 #Load phylogeny
 phylogeny<-read.nexus("consenso_1k_sumtrees.nex")
 
 #Create Raster containing pixels numbers 
 #For the Raster to have an appropiate extent and resolution, raster is created from an available species distribution map in .asc
-r<-raster("Aburria_aburri.asc")
+r<-raster("aburria_aburri_paramo.asc")
 pix_ras<-r
 names(pix_ras)<-"Grid"
 values(pix_ras)<-NA
@@ -30,7 +30,7 @@ pix_ras[as.numeric(rownames(community))]<-as.numeric(rownames(community))
 beta1<-function(x){
   pixel<-x[length(x)/2+0.5]
   if(is.na(pixel)==F && sum(!is.na(x)) > 1) {
-    beta_phylosor<-as.matrix( phylosor( subset(community, rownames(community) %in% x[!is.na(x)]), phylogeny) )
+    beta_phylosor<-as.matrix( phylosor( subset( community, rownames(community) %in% x[ x != 0 ] ), phylogeny) )
     row <- as.character(pixel)
     value<-vector()
     for (i in 1:length(x)) {
@@ -109,58 +109,6 @@ partition_jobs <- function(pix_ras=pix_ras, mesh1=mesh1,  mesh2=mesh2) {
 }
 
 
-####Neighbours_complete######
-#neighbours_complete <- function(x) {
-#  n <- length(which( (x >= 0) == T) )
-#  n<- n + length( which(is.na(x) == T ) )
-#  if (n == length(x) ) { return(T) }
-#  else { return(F) }
-#}
-
-
-###Pixel2Keep#####
-#pixel2keep <- function(x,y,k,m) {
-#  if ( k == 1 || m == 1 ) {
-#    if (k == 1 && m ==1 && x == y) {
-#      return (x)
-#    }
-#    else if (k == 1 && m != 1 ) {
-#      return (x)
-#    }
-#    else if (k != 1 && m == 1 ) {
-#      return (y)
-#    }
-#  }
-#  else {
-#    warning( "both windows overlay at a corner: try resizing one of the meshes" )
-#  }
-#}
-if (FALSE) {
-#####It overlays? #####
-it_overlays <- function( k , m) {
-  suppressWarnings(try(
-    if (class(intersect( k, m) ) == "RasterLayer") { 
-        return(T)
-      }
-    , silent=T))
-  return(F)
-}
-}
-
-if (FALSE) {
-check_borders <- function(x,y) {
-  if (x == y) {
-    return(x)
-    } 
-  else if (is.na(x)) {
-    return(y)
-    } 
-  else {
-    return(x)
-    }
-}
-}
-
 #copute betaphylodiversity by windows using neighbours geometry define in w
 #ras_beta_phylosor<-raster::focal(pix_ras,w=matrix(1,nrow=3,ncol=3),fun=beta1)
 
@@ -181,17 +129,5 @@ all_rasters <- c(ras_beta_phylosor_clusters1, ras_beta_phylosor_clusters2)
 rasters.mosaicargs <- all_rasters
 rasters.mosaicargs$fun <- mean
 mos <- do.call(mosaic, rasters.mosaicargs)
-
-#beta_good <- list()
-#c_i <- 1
-#for ( i in beta_clu1$beta ) {
-#  c_j <- 1
-#  for ( j in beta_clu2$beta ) {
-#    if ( it_overlays(i, j) ) {
-#      beta_good <- c(beta_good, overlay( i, j, fun=pixel2keep, k= beta_clu1$neigh[[c_i]], m= beta_clu2$neigh[[c_j]] ) )
-#    }
-#    c_i = c_i + i
-#  }
-#  c_j = c_j + j
-#}
+writeRaster(mos,filename="phylosor.asc",overwrite=TRUE)
 
