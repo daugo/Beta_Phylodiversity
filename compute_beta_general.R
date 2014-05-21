@@ -24,6 +24,7 @@ names(pix_ras)<-"Grid"
 values(pix_ras)<-NA
 #2- Asignar al raster los valores de PD que corresponden a cada pixel
 pix_ras[as.numeric(rownames(community))]<-as.numeric(rownames(community))
+###David: cual seria el nombre de la fila no entiendo...yo creo q aca lo que tienes es un raster con los numeros de los pixeles
 
 ######BetaPD################
 ### funcion con indice 1
