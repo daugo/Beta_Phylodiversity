@@ -30,7 +30,7 @@ pix_ras[as.numeric(rownames(community))]<-as.numeric(rownames(community))
 ### funcion con indice 1
 beta1<-function(x){
   pixel<-x[length(x)/2+0.5]
-  if(is.na(pixel)==F && sum(!is.na(x)) > 1) {
+  if(is.na(pixel)==F && sum(!is.na(x)) >= length(x)/2 ) {
     beta_phylosor<-as.matrix( phylosor( subset( community, rownames(community) %in% x[ x != 0 ] ), phylogeny) )
     row <- as.character(pixel)
     value<-vector()
@@ -116,7 +116,8 @@ partition_jobs <- function(pix_ras=pix_ras, mesh1=mesh1,  mesh2=mesh2) {
 #get total number of cores on machine
 total_cores <- multicore:::detectCores()
 #establish number of cores to use, we define to use 4/5 of the total number of cores
-cores2use <- ceiling(total_cores*4/5)
+cores2use_ratio <- 1
+cores2use <- ceiling(total_cores*cores2use_ratio)
 #mesh geometry for data partitioning
 mesh1 <- c(cores2use/2, 2)
 mesh2 <- c(cores2use/3, 3)
